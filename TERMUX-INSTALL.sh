@@ -23,9 +23,26 @@ fi
 echo "✅ Rust ready: $(cargo --version)"
 echo ""
 
+# Setup Chinese mirror if needed
+if [ ! -f ~/.cargo/config.toml ]; then
+    echo "🔧 Setting up crates.io mirror..."
+    mkdir -p ~/.cargo
+    cat > ~/.cargo/config.toml << 'MIRROR'
+[source.crates-io]
+replace-with = "ustc"
+
+[source.ustc]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
+MIRROR
+    echo "✅ Mirror configured"
+fi
+
+echo ""
+
 # Create vaultgrim directory
-mkdir -p ~/vaultgrim
-cd ~/vaultgrim
+cd ~
+mkdir -p vaultgrim
+cd vaultgrim
 
 # Clone or update repo
 if [ -d ".git" ]; then
