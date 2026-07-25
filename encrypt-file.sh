@@ -38,18 +38,29 @@ case "$CHOICE" in
 esac
 
 if [ -z "$FILE" ]; then
+    echo ""
     echo -n "Enter file path: "
     read FILE
 fi
 
+# Clean the path
+FILE="$(echo "$FILE" | tr -d '\r')"
+
+# Check if file exists
 if [ ! -f "$FILE" ]; then
+    echo ""
     echo "Error: File not found: $FILE"
+    echo ""
+    echo "Make sure the path is correct!"
     exit 1
 fi
 
-# Generate key automatically
+# Get absolute path
+FILE="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+
+# Generate key in same directory as file
 KEY_FILE="${FILE}.key"
-openssl rand -base64 32 > "$KEY_FILE"
+openssl rand -base64 32 > "$KEY_FILE" 2>/dev/null
 
 # Encrypt
 OUTPUT="${FILE}.enc"
