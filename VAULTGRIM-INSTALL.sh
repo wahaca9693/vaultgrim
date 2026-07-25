@@ -59,29 +59,33 @@ echo ""
 
 source "${HOME}/.cargo/env" 2>/dev/null || true
 
-# Download dependencies separately and wait for completion
-cargo fetch 2>&1
-
-# Wait for cargo to finish completely
-wait
-echo ""
-echo "OK All dependencies downloaded"
+# Download dependencies and wait for completion
+if cargo fetch; then
+    echo ""
+    echo "OK All dependencies downloaded"
+else
+    echo ""
+    echo "ERROR: Failed to download dependencies"
+    exit 1
+fi
 
 # 5. Build
 echo "[5/6] Building Vaultgrim..."
 echo "Compiling source code..."
 echo ""
 
-cargo build --release 2>&1 | while read line; do
-    echo "  $line"
-done
+# Build and capture exit status
+set +e
+cargo build --release
+BUILD_STATUS=$?
+set -e
 
-if [ $? -eq 0 ]; then
+if [ ${BUILD_STATUS} -eq 0 ]; then
     echo ""
     echo "OK Build successful"
 else
     echo ""
-    echo "ERROR: Build failed"
+    echo "ERROR: Build failed with exit code ${BUILD_STATUS}"
     exit 1
 fi
 
@@ -121,6 +125,6 @@ if [ -f "${VAULTGRIM_PATH}" ]; then
     echo "  vaultgrim --help"
     echo "=========================================="
 else
-    echo "ERROR: Binary not found"
+    echo "ERROR: Binary not found at ${VAULTGRIM_PATH}"
     exit 1
 fi
