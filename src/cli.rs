@@ -219,6 +219,9 @@ pub enum Commands {
     
     /// ⚡ Run cryptographic benchmark
     Benchmark,
+
+    /// 🎯 Interactive menu (select options by number)
+    Menu,
 }
 
 #[derive(Clone, Copy, ValueEnum, Debug)]

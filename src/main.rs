@@ -131,6 +131,9 @@ fn run() -> Result<()> {
         cli::Commands::Benchmark => {
             commands::benchmark::handle_benchmark()?;
         }
+        cli::Commands::Menu => {
+            commands::interactive::run();
+        }
     }
 
     Ok(())
