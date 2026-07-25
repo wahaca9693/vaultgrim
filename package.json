@@ -1,0 +1,40 @@
+{
+  "name": "vaultgrim",
+  "version": "1.0.4",
+  "description": "Advanced encryption suite - encrypt any file type with military-grade algorithms",
+  "keywords": [
+    "encryption",
+    "cryptography",
+    "security",
+    "encrypt",
+    "decrypt",
+    "aes",
+    "chacha20"
+  ],
+  "author": "Vaultgrim Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wahaca9693/vaultgrim.git"
+  },
+  "bin": {
+    "vaultgrim": "./encrypt-file.sh",
+    "vaultgrim-decrypt": "./decrypt-file.sh"
+  },
+  "preferGlobal": true,
+  "os": [
+    "linux",
+    "darwin",
+    "android",
+    "freebsd",
+    "win32"
+  ],
+  "scripts": {
+    "postinstall": "chmod +x encrypt-file.sh decrypt-file.sh",
+    "encrypt": "./encrypt-file.sh",
+    "decrypt": "./decrypt-file.sh"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
