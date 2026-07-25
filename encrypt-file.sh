@@ -4,9 +4,7 @@
 #  Just select number + file = done!
 # ============================================================
 
-set -e
-
-FILE="$1"
+set +e
 
 echo ""
 echo "╔════════════════════════════════════════════════════════════╗"
@@ -23,58 +21,81 @@ echo "  [5] Twofish-256-GCM    (Strong Alternative)"
 echo "  [6] ARIA-256-GCM       (Korean Standard)"
 echo "  [7] Serpent-256-GCM    (Strong Alternative)"
 echo ""
+
 echo -n "Enter number [1-7]: "
 read CHOICE
 
 case "$CHOICE" in
-    1) ALGO="aes-256-gcm" ;;
-    2) ALGO="chacha20-poly1305" ;;
-    3) ALGO="camellia-256-gcm" ;;
-    4) ALGO="sm4-gcm" ;;
-    5) ALGO="twofish-256-gcm" ;;
-    6) ALGO="aria-256-gcm" ;;
-    7) ALGO="serpent-256-gcm" ;;
-    *) ALGO="aes-256-gcm" ;;
+    1) ALGO="AES-256-GCM" ;;
+    2) ALGO="ChaCha20-Poly1305" ;;
+    3) ALGO="Camellia-256-GCM" ;;
+    4) ALGO="SM4-GCM" ;;
+    5) ALGO="Twofish-256-GCM" ;;
+    6) ALGO="ARIA-256-GCM" ;;
+    7) ALGO="Serpent-256-GCM" ;;
+    *) ALGO="AES-256-GCM" ;;
 esac
 
+echo ""
+echo -n "Enter file path: "
+read FILE
+
+FILE=$(echo "$FILE" | sed 's/\r//g' | xargs)
+
 if [ -z "$FILE" ]; then
-    echo ""
-    echo -n "Enter file path: "
-    read FILE
-fi
-
-# Clean the path
-FILE="$(echo "$FILE" | tr -d '\r')"
-
-# Check if file exists
-if [ ! -f "$FILE" ]; then
-    echo ""
-    echo "Error: File not found: $FILE"
-    echo ""
-    echo "Make sure the path is correct!"
+    echo "Error: No file path entered!"
     exit 1
 fi
 
-# Get absolute path
-FILE="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+echo ""
+echo "Checking file: $FILE"
 
-# Generate key in same directory as file
-KEY_FILE="${FILE}.key"
+if [ ! -e "$FILE" ]; then
+    echo "File not found. Searching..."
+    
+    if [ -e "/storage/emulated/0/$FILE" ]; then
+        FILE="/storage/emulated/0/$FILE"
+    elif [ -e "$HOME/$FILE" ]; then
+        FILE="$HOME/$FILE"
+    elif [ -e "./$FILE" ]; then
+        FILE="./$FILE"
+    else
+        echo "Error: File not found: $FILE"
+        exit 1
+    fi
+fi
+
+if [ ! -f "$FILE" ]; then
+    echo "Error: Not a file: $FILE"
+    exit 1
+fi
+
+REAL_PATH=$(realpath "$FILE" 2>/dev/null || echo "$FILE")
+
+echo "Encrypting: $REAL_PATH"
+echo "Algorithm: $ALGO"
+echo ""
+
+KEY_FILE="${REAL_PATH}.key"
 openssl rand -base64 32 > "$KEY_FILE" 2>/dev/null
 
-# Encrypt
-OUTPUT="${FILE}.enc"
-openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -in "$FILE" -out "$OUTPUT" -pass file:"$KEY_FILE"
+OUTPUT="${REAL_PATH}.enc"
+openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -in "$REAL_PATH" -out "$OUTPUT" -pass file:"$KEY_FILE"
 
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "  ENCRYPTION COMPLETE!"
-echo "════════════════════════════════════════════════════════════"
-echo ""
-echo "  Original:   $FILE"
-echo "  Encrypted:  $OUTPUT"
-echo "  Key:        $KEY_FILE"
-echo "  Algorithm:  $ALGO"
-echo ""
-echo "  IMPORTANT: Keep the key file safe!"
-echo ""
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "  ENCRYPTION COMPLETE!"
+    echo "════════════════════════════════════════════════════════════"
+    echo ""
+    echo "  Original:   $REAL_PATH"
+    echo "  Encrypted:  $OUTPUT"
+    echo "  Key:        $KEY_FILE"
+    echo "  Algorithm:  $ALGO"
+    echo ""
+    echo "  IMPORTANT: Keep the key file safe!"
+else
+    echo "Error: Encryption failed!"
+    rm -f "$KEY_FILE"
+    exit 1
+fi
